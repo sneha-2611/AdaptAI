@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Setup – AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 1rem auto;">
+
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <span class="badge badge-gold" style="margin-bottom: 0.8rem;">STEP 1 OF 7</span>
+    <h2>Welcome to AdaptAI</h2>
+    <p>Tell us a little bit about yourself so your AI tutor can calibrate your learning experience.</p>
+  </div>
+
+  <div class="card">
+    <form action="{{ url_for('setup') }}" method="POST">
+      
+      <!-- Student Name -->
+      <div style="margin-bottom: 1.5rem;">
+        <label for="name" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">
+          Your Name / Nickname <span style="color: var(--accent-gold); font-size: 0.85rem;">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          placeholder="e.g. Sneha" 
+          required 
+          style="width: 100%; padding: 0.85rem 1rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); color: #ffffff; font-family: var(--font-ui); font-size: 1rem; outline: none; transition: border-color 0.2s ease;"
+          onfocus="this.style.borderColor='var(--accent-gold)'"
+          onblur="this.style.borderColor='var(--border-color)'"
+        >
+      </div>
+
+      <!-- Experience Level -->
+      <div style="margin-bottom: 1.8rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.95rem;">
+          Your Self-Assessed Experience Level
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+          <label style="cursor: pointer;">
+            <input type="radio" name="initial_level" value="Beginner" checked style="display: none;" onchange="updateLevelSelection(this)">
+            <div class="level-box selected" style="padding: 1rem 0.75rem; text-align: center; border: 1.5px solid var(--accent-gold); border-radius: var(--radius-md); background: rgba(245, 158, 11, 0.1); transition: all 0.2s ease;">
+              <div style="font-size: 1.3rem; margin-bottom: 0.3rem;">🌱</div>
+              <strong style="display: block; font-size: 0.95rem; color: #ffffff;">Beginner</strong>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">New to AI & ML</small>
+            </div>
+          </label>
+
+          <label style="cursor: pointer;">
+            <input type="radio" name="initial_level" value="Intermediate" style="display: none;" onchange="updateLevelSelection(this)">
+            <div class="level-box" style="padding: 1rem 0.75rem; text-align: center; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary); transition: all 0.2s ease;">
+              <div style="font-size: 1.3rem; margin-bottom: 0.3rem;">⚙️</div>
+              <strong style="display: block; font-size: 0.95rem; color: #ffffff;">Intermediate</strong>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">Knows fundamentals</small>
+            </div>
+          </label>
+
+          <label style="cursor: pointer;">
+            <input type="radio" name="initial_level" value="Advanced" style="display: none;" onchange="updateLevelSelection(this)">
+            <div class="level-box" style="padding: 1rem 0.75rem; text-align: center; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary); transition: all 0.2s ease;">
+              <div style="font-size: 1.3rem; margin-bottom: 0.3rem;">🚀</div>
+              <strong style="display: block; font-size: 0.95rem; color: #ffffff;">Advanced</strong>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">Hands-on practitioner</small>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Target Topic -->
+      <div style="margin-bottom: 2rem;">
+        <label for="target_topic" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">
+          Primary Focus Topic
+        </label>
+        <select 
+          id="target_topic" 
+          name="target_topic"
+          style="width: 100%; padding: 0.85rem 1rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); color: #ffffff; font-family: var(--font-ui); font-size: 1rem; outline: none;"
+        >
+          <option value="AI Fundamentals">AI Fundamentals</option>
+          <option value="Machine Learning Basics">Machine Learning Basics</option>
+          <option value="Supervised Learning">Supervised Learning</option>
+          <option value="Unsupervised Learning">Unsupervised Learning</option>
+          <option value="Regression">Regression</option>
+          <option value="Classification">Classification</option>
+          <option value="Deep Learning Basics">Deep Learning Basics</option>
+        </select>
+        <small style="display: block; margin-top: 0.4rem; color: var(--text-dim); font-size: 0.8rem;">
+          You will have access to all 7 topics in your personalised roadmap.
+        </small>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btn-submit-setup" style="width: 100%; padding: 0.9rem;">
+        Continue to Diagnostic Assessment →
+      </button>
+
+    </form>
+  </div>
+
+</div>
+
+<script>
+function updateLevelSelection(input) {
+  document.querySelectorAll('.level-box').forEach(box => {
+    box.style.borderColor = 'var(--border-color)';
+    box.style.background = 'var(--bg-secondary)';
+  });
+  const box = input.closest('label').querySelector('.level-box');
+  box.style.borderColor = 'var(--accent-gold)';
+  box.style.background = 'rgba(245, 158, 11, 0.1)';
+}
+</script>
+{% endblock %}

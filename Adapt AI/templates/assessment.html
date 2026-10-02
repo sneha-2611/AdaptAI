@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic Assessment – AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 0 auto;">
+
+  <!-- Header & Progress -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+      <span class="badge badge-blue">1. DIAGNOSTIC ASSESSMENT</span>
+      <span style="font-weight: 600; color: #ffffff;" id="question-counter">Question 1 of {{ questions|length }}</span>
+    </div>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="quiz-progress-bar" style="width: 10%;"></div>
+    </div>
+  </div>
+
+  <!-- Assessment Card -->
+  <div class="card" id="assessment-card">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <span class="badge badge-gold" id="q-topic-badge">{{ questions[0].topic_name }}</span>
+      <span class="badge badge-gray" id="q-difficulty-badge">Level: {{ questions[0].difficulty|title }}</span>
+    </div>
+
+    <h2 id="q-title" style="font-size: 1.45rem; line-height: 1.4; margin-bottom: 1.5rem; font-family: var(--font-ui); font-weight: 600;">
+      {{ questions[0].question }}
+    </h2>
+
+    <div class="options-grid" id="options-container">
+      {% for opt in questions[0].options %}
+      <div class="option-item" onclick="selectOption({{ loop.index0 }})" data-index="{{ loop.index0 }}">
+        <div class="option-key">{{ ['A', 'B', 'C', 'D'][loop.index0] }}</div>
+        <div class="option-text">{{ opt }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+      <button class="btn btn-blue" id="btn-next-question" onclick="handleNextClick()" disabled>
+        Next Question →
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Pass questions into JS safely -->
+<script>
+const questionsData = {{ questions|tojson }};
+const studentId = {{ student_id }};
+let currentIndex = 0;
+const userAnswers = {}; // question_id -> chosen_idx
+
+function renderQuestion(index) {
+  const q = questionsData[index];
+  document.getElementById('question-counter').innerText = `Question ${index + 1} of ${questionsData.length}`;
+  document.getElementById('quiz-progress-bar').style.width = `${((index + 1) / questionsData.length) * 100}%`;
+  document.getElementById('q-topic-badge').innerText = q.topic_name;
+  document.getElementById('q-difficulty-badge').innerText = `Level: ${q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1)}`;
+  document.getElementById('q-title').innerText = q.question;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const savedAnswer = userAnswers[q.id];
+
+  q.options.forEach((optText, optIdx) => {
+    const item = document.createElement('div');
+    item.className = 'option-item' + (savedAnswer === optIdx ? ' selected' : '');
+    item.setAttribute('data-index', optIdx);
+    item.onclick = () => selectOption(optIdx);
+
+    item.innerHTML = `
+      <div class="option-key">${letters[optIdx]}</div>
+      <div class="option-text">${optText}</div>
+    `;
+    container.appendChild(item);
+  });
+
+  const nextBtn = document.getElementById('btn-next-question');
+  nextBtn.disabled = savedAnswer === undefined;
+  if (index === questionsData.length - 1) {
+    nextBtn.innerText = "Complete & Analyse Profile →";
+    nextBtn.className = "btn btn-green";
+  } else {
+    nextBtn.innerText = "Next Question →";
+    nextBtn.className = "btn btn-blue";
+  }
+}
+
+function selectOption(index) {
+  const q = questionsData[currentIndex];
+  userAnswers[q.id] = index;
+
+  document.querySelectorAll('.option-item').forEach(el => {
+    el.classList.remove('selected');
+    if (parseInt(el.getAttribute('data-index')) === index) {
+      el.classList.add('selected');
+    }
+  });
+
+  document.getElementById('btn-next-question').disabled = false;
+}
+
+async function handleNextClick() {
+  if (currentIndex < questionsData.length - 1) {
+    currentIndex++;
+    renderQuestion(currentIndex);
+  } else {
+    // Submit assessment to backend
+    const btn = document.getElementById('btn-next-question');
+    btn.disabled = true;
+    btn.innerText = "Analysing Knowledge Profile...";
+
+    try {
+      const response = await fetch('/api/assessment/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          answers: userAnswers
+        })
+      });
+      const data = await response.json();
+      if (data.success && data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        alert("Evaluation error. Please try again.");
+        btn.disabled = false;
+        btn.innerText = "Complete & Analyse Profile →";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error submitting assessment.");
+      btn.disabled = false;
+      btn.innerText = "Complete & Analyse Profile →";
+    }
+  }
+}
+</script>
+{% endblock %}

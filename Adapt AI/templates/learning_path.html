@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Personalised Learning Path – AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+
+  <!-- Header matching PPT Slide 3 mock -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge badge-gold" style="margin-bottom: 0.6rem;">2. AI LEARNING PATH</span>
+      <h1>Your Learning Path</h1>
+      <p style="font-size: 1.05rem;">
+        Recommended curriculum sequence for <strong>{{ student.name }}</strong> ({{ student.current_level }} Level)
+      </p>
+    </div>
+
+    <div>
+      <a href="{{ url_for('dashboard', student_id=student.id) }}" class="btn btn-secondary btn-sm" id="btn-view-dashboard">
+        📊 View Full Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Visual Roadmap List -->
+  <div class="roadmap-list">
+    {% for item in roadmap %}
+    <div class="roadmap-card {% if item.is_recommended %}recommended-card{% elif item.status == 'completed' %}completed-card{% endif %}" id="card-{{ item.topic_id }}">
+      
+      <!-- Number or Icon -->
+      <div class="roadmap-num">
+        {% if item.status == 'completed' %}
+          <span>✓</span>
+        {% elif item.status == 'locked' %}
+          <span>🔒</span>
+        {% else %}
+          <span>{{ loop.index }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Content -->
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+          <h3 style="font-size: 1.25rem; font-family: var(--font-ui); font-weight: 600; margin: 0;">
+            {{ item.title }}
+          </h3>
+
+          <!-- Badges -->
+          {% if item.is_recommended %}
+            <span class="badge badge-gold">⭐ Recommended Next</span>
+          {% endif %}
+
+          {% if item.status == 'completed' %}
+            <span class="badge badge-green">Completed</span>
+          {% elif item.status == 'in_progress' %}
+            <span class="badge badge-blue">In Progress</span>
+          {% elif item.status == 'locked' %}
+            <span class="badge badge-gray">Locked</span>
+          {% endif %}
+
+          <span class="badge badge-purple" style="font-size: 0.7rem;">
+            Difficulty: {{ item.difficulty|title }}
+          </span>
+        </div>
+
+        <p style="font-size: 0.9rem; margin-bottom: 0.6rem; color: var(--text-muted);">
+          {{ item.description }}
+        </p>
+
+        <!-- Progress bar -->
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div class="progress-bar-container" style="max-width: 280px; margin: 0;">
+            <div class="progress-bar-fill {% if item.status == 'completed' %}fill-green{% elif item.is_recommended %}fill-gold{% endif %}" style="width: {{ item.progress_pct }}%;"></div>
+          </div>
+          <span style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">{{ item.progress_pct }}%</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+        {% if item.status == 'locked' %}
+          <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.6; cursor: not-allowed;">
+            🔒 Locked
+          </button>
+        {% else %}
+          <a href="{{ url_for('tutor', student_id=student.id, topic_id=item.topic_id) }}" class="btn {% if item.is_recommended %}btn-primary{% elif item.status == 'completed' %}btn-secondary{% else %}btn-blue{% endif %} btn-sm" id="btn-learn-{{ item.topic_id }}">
+            {% if item.status == 'completed' %}
+              Review Lesson
+            {% else %}
+              Learn Concept →
+            {% endif %}
+          </a>
+          <a href="{{ url_for('quiz', student_id=student.id, topic_id=item.topic_id) }}" class="btn btn-secondary btn-sm" id="btn-quiz-{{ item.topic_id }}">
+            🎯 Practice Quiz
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

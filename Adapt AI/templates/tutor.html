@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ topic.title }} – AI Tutor | AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 880px; margin: 0 auto;">
+
+  <!-- Breadcrumbs & Navigation -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+    <a href="{{ url_for('learning_path', student_id=student.id) }}" style="color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+      ← Back to Roadmap
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      <span class="badge badge-purple">AI Tutor Engine</span>
+      <span class="badge badge-gold">Difficulty: {{ topic_diff|title }}</span>
+      <span class="badge badge-blue">Progress: {{ topic_progress }}%</span>
+    </div>
+  </div>
+
+  <!-- Lesson Content Card -->
+  <div class="card" style="margin-bottom: 2rem;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <span class="badge badge-gold" style="margin-bottom: 0.4rem;">CONCEPT MODULE</span>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.4rem;">{{ lesson.topic_title }}</h1>
+        <p style="font-size: 0.95rem; color: var(--text-dim);">
+          Tuned for <strong>{{ student.name }}</strong> ({{ lesson.difficulty_level }} tier) · 
+          <span style="color: #60a5fa;">{{ lesson.source }}</span>
+        </p>
+      </div>
+
+      <a href="{{ url_for('quiz', student_id=student.id, topic_id=topic.id) }}" class="btn btn-green" id="btn-start-practice">
+        🎯 Practice Adaptive Quiz →
+      </a>
+    </div>
+
+    {% if lesson.is_weak_revision %}
+      <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--accent-gold); padding: 0.85rem 1.1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+        <p style="margin: 0; font-size: 0.92rem; color: #fde68a;">
+          📌 <strong>Targeted Reinforcement:</strong> You were flagged as needing revision in this area during diagnostics. The AI Tutor has provided intuitive real-world analogies to solidify understanding!
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Core AI Explanation -->
+    <div style="margin-bottom: 1.8rem;">
+      <h3 style="font-size: 1.15rem; color: #ffffff; margin-bottom: 0.6rem; font-family: var(--font-ui);">
+        📖 Concept Overview
+      </h3>
+      <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.3rem; font-size: 1.02rem; line-height: 1.7; color: #e2e8f0;">
+        {{ lesson.explanation }}
+      </div>
+    </div>
+
+    <!-- Practical Example -->
+    <div style="margin-bottom: 1.8rem;">
+      <h3 style="font-size: 1.15rem; color: #ffffff; margin-bottom: 0.6rem; font-family: var(--font-ui);">
+        💡 Intuitive Real-World Example
+      </h3>
+      <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 1.2rem; font-size: 0.98rem; line-height: 1.6; color: #cbd5e1;">
+        {{ lesson.example }}
+      </div>
+    </div>
+
+    <!-- Key Takeaways -->
+    <div>
+      <h3 style="font-size: 1.15rem; color: #ffffff; margin-bottom: 0.6rem; font-family: var(--font-ui);">
+        ⚡ Key Takeaways
+      </h3>
+      <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.6rem;">
+        {% for pt in lesson.key_points %}
+        <li style="display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.95rem; color: #cbd5e1; background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <span style="color: var(--accent-gold); font-size: 1.1rem; line-height: 1;">•</span>
+          <span>{{ pt }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Interactive AI Tutor Q&A Chat Section -->
+  <div class="card" id="tutor-chat-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <div>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.2rem;">💬 Ask AI Tutor</h3>
+        <p style="font-size: 0.88rem; margin: 0;">
+          Ask any question about <strong>{{ topic.title }}</strong>. The tutor answers based on your {{ student.current_level }} level.
+        </p>
+      </div>
+      <span class="badge badge-blue">Interactive Q&A</span>
+    </div>
+
+    <!-- Quick Prompt Suggestions -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+      <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.7rem;" onclick="suggestQuestion('Explain overfitting in simple words.')">
+        "Explain overfitting in simple words"
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.7rem;" onclick="suggestQuestion('How does gradient descent work?')">
+        "How does gradient descent work?"
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.7rem;" onclick="suggestQuestion('Why is test data kept separate from training data?')">
+        "Why keep test data separate?"
+      </button>
+    </div>
+
+    <!-- Chat Thread -->
+    <div class="chat-thread" id="chat-thread">
+      <!-- Default welcome bubble -->
+      <div class="chat-bubble assistant">
+        Hello <strong>{{ student.name }}</strong>! I am your personalized AI tutor for <strong>{{ topic.title }}</strong>. 
+        Feel free to ask for simplified analogies, code snippets, or mathematical intuitions!
+      </div>
+
+      <!-- Past interactions from database -->
+      {% for msg in chat_history %}
+      <div class="chat-bubble {{ msg.role }}">
+        {{ msg.content }}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Input Box -->
+    <form id="tutor-form" onsubmit="submitQuestion(event)" class="chat-input-row">
+      <input 
+        type="text" 
+        id="tutor-input" 
+        class="chat-input" 
+        placeholder="Type a question (e.g. 'Can you give me an analogy for this?')"
+        autocomplete="off"
+        required
+      >
+      <button type="submit" class="btn btn-primary" id="btn-send-question">
+        Ask AI Tutor
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+const studentId = {{ student.id }};
+const topicId = "{{ topic.id }}";
+
+function suggestQuestion(text) {
+  const input = document.getElementById('tutor-input');
+  input.value = text;
+  input.focus();
+}
+
+async function submitQuestion(e) {
+  e.preventDefault();
+  const input = document.getElementById('tutor-input');
+  const sendBtn = document.getElementById('btn-send-question');
+  const question = input.value.trim();
+  if (!question) return;
+
+  const thread = document.getElementById('chat-thread');
+
+  // Append user bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-bubble user';
+  userBubble.innerText = question;
+  thread.appendChild(userBubble);
+
+  input.value = '';
+  sendBtn.disabled = true;
+  sendBtn.innerText = "Thinking...";
+
+  // Placeholder thinking assistant bubble
+  const assistantBubble = document.createElement('div');
+  assistantBubble.className = 'chat-bubble assistant';
+  assistantBubble.innerHTML = '<em>AdaptAI is formulating an answer suited to your level...</em>';
+  thread.appendChild(assistantBubble);
+  thread.scrollTop = thread.scrollHeight;
+
+  try {
+    const response = await fetch('/api/tutor/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_id: studentId,
+        topic_id: topicId,
+        question: question
+      })
+    });
+
+    const data = await response.json();
+    if (data.success && data.answer) {
+      assistantBubble.innerText = data.answer;
+    } else {
+      assistantBubble.innerText = "I had trouble generating an answer right now. Please try rephrasing your question!";
+    }
+  } catch (err) {
+    console.error(err);
+    assistantBubble.innerText = "Network error connecting to the AI Tutor backend.";
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerText = "Ask AI Tutor";
+    thread.scrollTop = thread.scrollHeight;
+  }
+}
+</script>
+{% endblock %}

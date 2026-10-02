@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Adaptive Practice Quiz – {{ topic.title }} | AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 740px; margin: 0 auto;">
+
+  <!-- Header with Live Difficulty & Progress -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <span class="badge badge-green">3. ADAPTIVE QUIZ</span>
+        <h2 style="font-size: 1.6rem; display: inline-block; margin-left: 0.5rem; vertical-align: middle;">
+          {{ topic.title }}
+        </h2>
+      </div>
+
+      <!-- Difficulty Gauge -->
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Current Difficulty:</span>
+        <span class="badge badge-gold" id="current-difficulty-badge" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">
+          {{ current_difficulty|title }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem;">
+      <span id="session-count-label">Question 1 of 5 (Practice Session)</span>
+      <span id="topic-progress-label">Topic Mastery: {{ topic_progress }}%</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill fill-green" id="quiz-progress-bar" style="width: {{ topic_progress }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Quiz Card matching PPT Slide 3 mock -->
+  <div class="card" id="quiz-card">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <span class="badge badge-blue" id="q-category-badge">{{ topic.category }}</span>
+      <span class="badge badge-gray" id="q-level-badge">Target: {{ current_difficulty|title }}</span>
+    </div>
+
+    <h3 id="question-text" style="font-size: 1.35rem; line-height: 1.45; margin-bottom: 1.5rem; font-family: var(--font-ui); font-weight: 600;">
+      {{ first_question.question }}
+    </h3>
+
+    <!-- Options -->
+    <div class="options-grid" id="options-container">
+      {% for opt in first_question.options %}
+      <div class="option-item" onclick="selectQuizOption({{ loop.index0 }})" data-index="{{ loop.index0 }}">
+        <div class="option-key">{{ ['A', 'B', 'C', 'D'][loop.index0] }}</div>
+        <div class="option-text">{{ opt }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Instant Feedback Area -->
+    <div id="feedback-container" style="display: none;"></div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <a href="{{ url_for('tutor', student_id=student.id, topic_id=topic.id) }}" class="btn btn-secondary btn-sm">
+        📖 Review AI Lesson
+      </a>
+
+      <div style="display: flex; gap: 0.8rem;">
+        <button class="btn btn-primary" id="btn-submit-answer" onclick="submitAnswer()" disabled>
+          Submit Answer
+        </button>
+        <button class="btn btn-blue" id="btn-next-question" onclick="loadNextQuestion()" style="display: none;">
+          Next Adaptive Question →
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Session Controls -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.8rem;">
+    <a href="{{ url_for('learning_path', student_id=student.id) }}" style="color: var(--text-muted); font-size: 0.9rem;">
+      ← Return to Roadmap
+    </a>
+    <a href="{{ url_for('dashboard', student_id=student.id) }}" class="btn btn-secondary btn-sm" id="btn-finish-quiz">
+      Finish & View Dashboard →
+    </a>
+  </div>
+
+</div>
+
+<script>
+const studentId = {{ student.id }};
+const topicId = "{{ topic.id }}";
+let currentQuestionId = {{ first_question.id }};
+let currentDifficulty = "{{ current_difficulty }}";
+let selectedOptionIndex = null;
+let answered = false;
+let sessionQuestionCount = 1;
+const attemptedQuestionIds = [currentQuestionId];
+
+function selectQuizOption(index) {
+  if (answered) return;
+  selectedOptionIndex = index;
+
+  document.querySelectorAll('.option-item').forEach(el => {
+    el.classList.remove('selected');
+    if (parseInt(el.getAttribute('data-index')) === index) {
+      el.classList.add('selected');
+    }
+  });
+
+  document.getElementById('btn-submit-answer').disabled = false;
+}
+
+async function submitAnswer() {
+  if (selectedOptionIndex === null || answered) return;
+  answered = true;
+
+  const submitBtn = document.getElementById('btn-submit-answer');
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Evaluating...";
+
+  try {
+    const response = await fetch('/api/quiz/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_id: studentId,
+        topic_id: topicId,
+        question_id: currentQuestionId,
+        chosen_index: selectedOptionIndex,
+        current_difficulty: currentDifficulty
+      })
+    });
+
+    const data = await response.json();
+    if (data.success && data.result) {
+      renderFeedback(data.result);
+    } else {
+      alert("Error evaluating answer.");
+      submitBtn.disabled = false;
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error.");
+    submitBtn.disabled = false;
+  }
+}
+
+function renderFeedback(res) {
+  const isCorrect = res.is_correct;
+  const correctIdx = res.correct_index;
+  const explanation = res.explanation;
+  const newDiff = res.new_difficulty;
+  const adaptMsg = res.adaptation_message;
+  const newProgress = res.new_progress;
+
+  // Highlight options visually
+  document.querySelectorAll('.option-item').forEach(el => {
+    const idx = parseInt(el.getAttribute('data-index'));
+    if (idx === correctIdx) {
+      el.classList.add('correct');
+    } else if (idx === selectedOptionIndex && !isCorrect) {
+      el.classList.add('incorrect');
+    }
+  });
+
+  // Display feedback box matching Slide 3 mockup
+  const fbContainer = document.getElementById('feedback-container');
+  fbContainer.className = `feedback-box ${isCorrect ? 'correct' : 'incorrect'}`;
+  fbContainer.style.display = 'block';
+
+  fbContainer.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem;">
+      <span style="font-size: 1.3rem;">${isCorrect ? '🎉' : '💡'}</span>
+      <strong style="font-size: 1.1rem; color: ${isCorrect ? '#34d399' : '#f87171'};">
+        ${isCorrect ? 'Correct!' : 'Incorrect'}
+      </strong>
+    </div>
+    <p style="margin-bottom: 0.8rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0;">
+      ${explanation}
+    </p>
+    <div style="background: rgba(0, 0, 0, 0.25); border-radius: 6px; padding: 0.6rem 0.8rem; border-left: 3px solid ${isCorrect ? '#10b981' : '#f59e0b'};">
+      <small style="font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: center; gap: 0.4rem;">
+        <span>⚙️ <strong>AdaptAI Engine:</strong></span>
+        <span>${adaptMsg}</span>
+      </small>
+    </div>
+  `;
+
+  // Update difficulty & progress on page
+  currentDifficulty = newDiff;
+  document.getElementById('current-difficulty-badge').innerText = newDiff.charAt(0).toUpperCase() + newDiff.slice(1);
+  document.getElementById('topic-progress-label').innerText = `Topic Mastery: ${newProgress}%`;
+  document.getElementById('quiz-progress-bar').style.width = `${newProgress}%`;
+
+  // Switch button visibility
+  document.getElementById('btn-submit-answer').style.display = 'none';
+  const nextBtn = document.getElementById('btn-next-question');
+  nextBtn.style.display = 'inline-flex';
+}
+
+async function loadNextQuestion() {
+  const nextBtn = document.getElementById('btn-next-question');
+  nextBtn.disabled = true;
+  nextBtn.innerText = "Loading Adaptive Question...";
+
+  try {
+    const res = await fetch(`/api/quiz/next-question?student_id=${studentId}&topic_id=${topicId}&difficulty=${currentDifficulty}&exclude_ids=${attemptedQuestionIds.join(',')}`);
+    const data = await res.json();
+
+    if (data.success && data.question) {
+      const q = data.question;
+      currentQuestionId = q.id;
+      attemptedQuestionIds.push(q.id);
+      sessionQuestionCount++;
+
+      // Reset state
+      selectedOptionIndex = null;
+      answered = false;
+
+      // Update UI elements
+      document.getElementById('session-count-label').innerText = `Question ${sessionQuestionCount} (Practice Session)`;
+      document.getElementById('q-level-badge').innerText = `Target: ${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)}`;
+      document.getElementById('question-text').innerText = q.question;
+      document.getElementById('feedback-container').style.display = 'none';
+
+      // Render new options
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+
+      q.options.forEach((optText, optIdx) => {
+        const item = document.createElement('div');
+        item.className = 'option-item';
+        item.setAttribute('data-index', optIdx);
+        item.onclick = () => selectQuizOption(optIdx);
+        item.innerHTML = `
+          <div class="option-key">${letters[optIdx]}</div>
+          <div class="option-text">${optText}</div>
+        `;
+        container.appendChild(item);
+      });
+
+      // Reset buttons
+      const submitBtn = document.getElementById('btn-submit-answer');
+      submitBtn.style.display = 'inline-flex';
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Submit Answer";
+      nextBtn.style.display = 'none';
+      nextBtn.disabled = false;
+      nextBtn.innerText = "Next Adaptive Question →";
+    } else {
+      alert("Session completed! Head to the dashboard to inspect your progress.");
+      window.location.href = `/dashboard/${studentId}`;
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error fetching next question.");
+    nextBtn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

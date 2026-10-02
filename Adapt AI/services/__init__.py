@@ -1,0 +1,2 @@
+from .adaptive_engine import evaluate_diagnostic, generate_personalised_roadmap, get_student_roadmap, record_quiz_submission, get_dashboard_data
+from .ai_service import generate_lesson_content, ask_ai_tutor, get_adaptive_quiz_question, get_tutor_history

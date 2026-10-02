@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}AdaptAI – Personalised AI Tutor for Learning AI{% endblock %}
+
+{% block content %}
+<div class="landing-hero" style="text-align: center; max-width: 860px; margin: 2rem auto 3.5rem;">
+  <span class="badge badge-gold" style="margin-bottom: 1.2rem;">AI BUILD CHALLENGE 2026 · PS-03</span>
+  
+  <h1 style="margin-bottom: 0.8rem; font-size: 3.2rem;">
+    AdaptAI
+  </h1>
+  <p class="serif-title" style="font-size: 1.6rem; color: var(--accent-gold-light); margin-bottom: 1.5rem; font-style: italic;">
+    Personalised AI Tutor for Learning AI
+  </p>
+  
+  <p style="font-size: 1.15rem; color: #cbd5e1; max-width: 680px; margin: 0 auto 2.2rem; line-height: 1.7;">
+    Learn smarter with an AI tutor that adapts to your knowledge, performance and learning pace. 
+    Not a generic chatbot—an intelligent adaptive learning engine.
+  </p>
+
+  <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem;">
+    <a href="{{ url_for('setup') }}" class="btn btn-primary btn-lg" id="btn-start-learning">
+      <span>🚀</span> Start Learning
+    </a>
+    {% if active_student %}
+      <a href="{{ url_for('learning_path', student_id=active_student.id) }}" class="btn btn-secondary btn-lg" id="btn-continue-learning">
+        <span>📖</span> Continue as {{ active_student.name }}
+      </a>
+    {% elif recent_students %}
+      <a href="{{ url_for('select_student', student_id=recent_students[0].id) }}" class="btn btn-secondary btn-lg" id="btn-continue-learning">
+        <span>📖</span> Continue as {{ recent_students[0].name }}
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Hackathon Core Flow Strip matching PPT slide 2 & 3 -->
+  <div class="core-flow-strip">
+    <div class="flow-step active">
+      <span class="flow-num">1</span>
+      <span>Assess</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">2</span>
+      <span>Analyse</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">3</span>
+      <span>Personalise</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">4</span>
+      <span>Learn</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">5</span>
+      <span>Practice</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">6</span>
+      <span>Adapt</span>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <span class="flow-num">7</span>
+      <span>Track</span>
+    </div>
+  </div>
+</div>
+
+<!-- Presentation Highlights (Cards from Slide 4 & 5) -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem;">
+  
+  <div class="card">
+    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+      <span class="badge badge-danger">The Problem Today</span>
+    </div>
+    <h3 style="margin-bottom: 0.75rem;">One-Size-Fits-All Fails AI Learners</h3>
+    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; color: var(--text-muted); font-size: 0.95rem;">
+      <li>• Fixed generic resources don't know what you already understand.</li>
+      <li>• Difficulty identifying specific weak concepts (e.g. loss functions vs clustering).</li>
+      <li>• Content is either too mathematically intimidating or overly simplistic.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-color: rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(245, 158, 11, 0.04), var(--bg-card));">
+    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+      <span class="badge badge-gold">The AdaptAI Solution</span>
+    </div>
+    <h3 style="margin-bottom: 0.75rem;">Dynamic AI-Powered Adaptation</h3>
+    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; color: var(--text-muted); font-size: 0.95rem;">
+      <li>✓ <strong>Diagnostic Assessment:</strong> Spots knowledge gaps before you begin.</li>
+      <li>✓ <strong>Personalised Roadmap:</strong> Recommends weak topics first and credits mastered ones.</li>
+      <li>✓ <strong>Adaptive Quiz:</strong> Questions automatically tune difficulty based on performance.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+      <span class="badge badge-blue">Evaluation Engine</span>
+    </div>
+    <h3 style="margin-bottom: 0.75rem;">Continuous Feedback Loop</h3>
+    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; color: var(--text-muted); font-size: 0.95rem;">
+      <li>• <strong>High Performance (&ge;80%):</strong> Automatically promotes to harder challenges.</li>
+      <li>• <strong>Low Performance (&lt;50%):</strong> Lowers difficulty and recommends targeted revision.</li>
+      <li>• <strong>Real-time Dashboard:</strong> Full topic mastery tracking and next step clarity.</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- Quick Hackathon Scenario Tester Bar -->
+<div class="card" style="background: var(--bg-secondary); border: 1.5px dashed var(--border-color); text-align: center;">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.6rem;">
+    <span class="badge badge-purple">Hackathon Evaluator Quick-Test</span>
+  </div>
+  <p style="margin-bottom: 1.2rem; font-size: 0.95rem;">
+    Instantly simulate test learner profiles defined in prompt Section 14:
+  </p>
+  <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+    <a href="{{ url_for('load_scenario', scenario_num=1) }}" class="btn btn-secondary btn-sm" id="btn-scenario-1">
+      ⚡ Scenario 1: High Score (Advanced)
+    </a>
+    <a href="{{ url_for('load_scenario', scenario_num=2) }}" class="btn btn-secondary btn-sm" id="btn-scenario-2">
+      ⚡ Scenario 2: Low Score (Beginner Revision)
+    </a>
+    <a href="{{ url_for('load_scenario', scenario_num=3) }}" class="btn btn-secondary btn-sm" id="btn-scenario-3">
+      ⚡ Scenario 3: Developing Learner (Intermediate)
+    </a>
+  </div>
+</div>
+{% endblock %}

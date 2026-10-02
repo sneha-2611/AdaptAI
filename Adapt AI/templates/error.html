@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Notice – AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🧭</div>
+    <span class="badge badge-gold" style="margin-bottom: 0.8rem;">{{ error_code|default('Notice') }}</span>
+    <h2 style="margin-bottom: 0.8rem;">{{ error_title|default('Page Not Found') }}</h2>
+    <p style="margin-bottom: 2rem; color: var(--text-muted);">
+      {{ error_message|default('The requested page could not be located or session has expired. Return to your learning journey below.') }}
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="{{ url_for('index') }}" class="btn btn-primary" id="btn-err-home">
+        Home Page
+      </a>
+      {% if active_student %}
+        <a href="{{ url_for('dashboard', student_id=active_student.id) }}" class="btn btn-secondary" id="btn-err-dash">
+          My Dashboard
+        </a>
+      {% else %}
+        <a href="{{ url_for('setup') }}" class="btn btn-secondary" id="btn-err-setup">
+          Start Learning
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Learning Profile – AdaptAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 750px; margin: 0.5rem auto;">
+
+  <!-- Header -->
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <span class="badge badge-green" style="margin-bottom: 0.8rem;">ASSESSMENT COMPLETED</span>
+    <h1>Your Learning Profile</h1>
+    <p>AdaptAI evaluated your conceptual understanding and identified your unique knowledge profile.</p>
+  </div>
+
+  <div class="card" style="margin-bottom: 2rem; border-color: rgba(99, 102, 241, 0.4);">
+    
+    <!-- Top summary banner -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+      <div>
+        <small style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700;">Learner</small>
+        <h3 style="font-size: 1.4rem; color: #ffffff; margin-top: 0.2rem;">{{ student.name }}</h3>
+      </div>
+
+      <div>
+        <small style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700;">Knowledge Level</small>
+        <div style="margin-top: 0.2rem;">
+          {% if result.knowledge_level == 'Advanced' %}
+            <span class="badge badge-gold" style="font-size: 0.95rem; padding: 0.35rem 0.9rem;">⭐ {{ result.knowledge_level }}</span>
+          {% elif result.knowledge_level == 'Intermediate' %}
+            <span class="badge badge-blue" style="font-size: 0.95rem; padding: 0.35rem 0.9rem;">⚡ {{ result.knowledge_level }}</span>
+          {% else %}
+            <span class="badge badge-purple" style="font-size: 0.95rem; padding: 0.35rem 0.9rem;">🌱 {{ result.knowledge_level }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <small style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700;">Diagnostic Score</small>
+        <h3 style="font-size: 1.4rem; color: var(--accent-gold-light); margin-top: 0.2rem;">
+          {{ result.score }}/{{ result.total_questions }} <span style="font-size: 0.95rem; color: var(--text-muted);">({{ result.percentage }}%)</span>
+        </h3>
+      </div>
+    </div>
+
+    <!-- Strong & Weak Breakdown -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+      
+      <!-- Strong Areas -->
+      <div style="background: var(--bg-secondary); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 1.3rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+          <span style="color: var(--accent-green); font-size: 1.1rem;">✓</span>
+          <strong style="color: #ffffff; font-size: 1rem;">Strong Areas</strong>
+        </div>
+        {% if result.strong_topics %}
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for topic in result.strong_topics %}
+            <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.92rem; color: #cbd5e1;">
+              <span class="badge badge-green" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">Mastered</span>
+              {{ topic }}
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p style="font-size: 0.88rem; color: var(--text-dim); font-style: italic;">
+            No topics reached the 80%+ threshold yet. AdaptAI will build your foundations step by step!
+          </p>
+        {% endif %}
+      </div>
+
+      <!-- Needs Improvement -->
+      <div style="background: var(--bg-secondary); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-md); padding: 1.3rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+          <span style="color: var(--accent-gold); font-size: 1.1rem;">⚠️</span>
+          <strong style="color: #ffffff; font-size: 1rem;">Needs Improvement</strong>
+        </div>
+        {% if result.weak_topics %}
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for topic in result.weak_topics %}
+            <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.92rem; color: #cbd5e1;">
+              <span class="badge badge-gold" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">Priority</span>
+              {{ topic }}
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p style="font-size: 0.88rem; color: var(--text-dim); font-style: italic;">
+            Solid foundation demonstrated across all diagnostic areas!
+          </p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Personalisation Note -->
+    <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-md); border-left: 3px solid var(--accent-blue);">
+      <p style="font-size: 0.9rem; color: #cbd5e1; margin: 0;">
+        💡 <strong>Adaptation in action:</strong> Your personalised learning roadmap has reordered curriculum topics, credited your strengths, and queued priority lessons to bridge your identified knowledge gaps.
+      </p>
+    </div>
+
+    <!-- Call to action button -->
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="{{ url_for('learning_path', student_id=student.id) }}" class="btn btn-primary btn-lg" id="btn-create-path" style="width: 100%;">
+        Create My Personalised Learning Path →
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

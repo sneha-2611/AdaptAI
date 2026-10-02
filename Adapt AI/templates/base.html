@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AdaptAI – Personalised AI Tutor for Learning AI{% endblock %}</title>
+  <meta name="description" content="AdaptAI is an adaptive AI tutor for students learning Artificial Intelligence and Machine Learning.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Chart.js for interactive analytics (Local offline asset with CDN fallback) -->
+  <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
+    }
+  </script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo" id="nav-brand">
+        <div class="brand-icon">AI</div>
+        <div>
+          <span class="brand-text">AdaptAI</span>
+          <span class="brand-badge">BFWAI/HACK 26</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        {% if active_student %}
+          <a href="{{ url_for('learning_path', student_id=active_student.id) }}" class="nav-item" id="nav-learning-path">Roadmap</a>
+          <a href="{{ url_for('dashboard', student_id=active_student.id) }}" class="nav-item" id="nav-dashboard">Dashboard</a>
+          
+          <div class="nav-student-pill" title="Active Learner Profile">
+            <span class="student-dot"></span>
+            <strong>{{ active_student.name }}</strong>
+            <span class="badge badge-gold" style="font-size:0.7rem; padding: 0.1rem 0.4rem;">{{ active_student.current_level }}</span>
+          </div>
+          <a href="{{ url_for('setup') }}" class="btn btn-secondary btn-sm" id="btn-switch-learner">+ New Learner</a>
+        {% else %}
+          <a href="{{ url_for('setup') }}" class="btn btn-primary btn-sm" id="btn-nav-start">Start Learning</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- Core Main Content Container -->
+  <main class="main-wrapper">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Clean Footer matching the PPT deck -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p><strong>AdaptAI</strong> – Personalised AI Tutor for Learning Artificial Intelligence & Machine Learning</p>
+      <div class="footer-meta">
+        <span>PS-03 · Team Coders (Sneha J)</span>
+        <span>•</span>
+        <span>Flow: Assess → Analyse → Personalise → Learn → Practice → Adapt → Track</span>
+        <span>•</span>
+        <span class="badge badge-blue" style="font-size: 0.72rem;">{{ llm_mode }}</span>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
